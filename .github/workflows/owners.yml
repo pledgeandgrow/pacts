@@ -1,0 +1,34 @@
+name: owners
+
+# After a merge, each new pact gets its publisher as owner in .github/owners.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: owners
+  cancel-in-progress: false
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: record owners of new pacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 .github/scripts/record_owners.py --pusher "${{ github.actor }}"
+          if ! git diff --quiet -- .github/owners; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add .github/owners
+            git commit -q -m "owners: record the owners of new pacts"
+            git push -q
+          fi

@@ -1,0 +1,32 @@
+name: check
+
+# Every pull request is checked by the base branch's copy of the check, so a
+# pull request cannot change the rules it is checked against.
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: check the change
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+          ASSOCIATION: ${{ github.event.pull_request.author_association }}
+          GIT_ALLOW_PROTOCOL: https
+        run: |
+          git show "$BASE:.github/scripts/check.py" > "$RUNNER_TEMP/check.py"
+          extra=""
+          case "$ASSOCIATION" in
+            OWNER|MEMBER|COLLABORATOR) extra="--maintainer" ;;
+          esac
+          python3 "$RUNNER_TEMP/check.py" --base "$BASE" --head "$HEAD" --author "$AUTHOR" $extra
