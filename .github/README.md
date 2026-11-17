@@ -1,132 +1,131 @@
-# pacts
+<p align="center">
+  <a href="https://github.com/pledgeandgrow/fid">
+    <img src="https://raw.githubusercontent.com/pledgeandgrow/fid/main/docs/fid-logo.svg" alt="Fid" width="88">
+  </a>
+</p>
 
-The index of **pacts**, the packages of the [Fid](https://github.com/pledgeandgrow/fid)
-language. `fid ark` reads it to find, add and install pacts. It is to ark
-what the crates.io index is to cargo.
+<h1 align="center">pacts</h1>
 
-The index holds no code. Each pact's code stays in its own git repository;
-the index records where it is and which commit each version is, and ark
+<p align="center">
+  <b>The package index of the <a href="https://github.com/pledgeandgrow/fid">Fid</a> language.</b><br>
+  <code>fid ark</code> reads it to find, add and install pacts, as cargo reads the crates.io index.
+</p>
+
+<p align="center">
+  <a href="https://github.com/pledgeandgrow/pacts/actions/workflows/check.yml"><img alt="index check" src="https://github.com/pledgeandgrow/pacts/actions/workflows/check.yml/badge.svg"></a>
+  <a href="https://github.com/pledgeandgrow/fid/blob/main/docs/reference/ark.md"><img alt="ark docs" src="https://img.shields.io/badge/read-the%20ark%20docs-262626"></a>
+  <a href="CONTRIBUTING.md"><img alt="publish a pact" src="https://img.shields.io/badge/publish-a%20pact-C2255C"></a>
+</p>
+
+<p align="center">
+  <a href="#use-a-pact">Use a pact</a> ·
+  <a href="#publish-a-pact">Publish a pact</a> ·
+  <a href="#how-the-index-works">How it works</a> ·
+  <a href="#the-rules">The rules</a> ·
+  <a href="#report-a-problem">Report a problem</a>
+</p>
+
+---
+
+A **pact** is a Fid package: a public git repository with an `ark.toml`
+and `.fd` sources. This repository holds **no code**. For each pact it
+records where the code lives and which commit each version is, and ark
 refuses to install a version whose tag has moved.
 
-## Using pacts
+## Use a pact
 
 ```bash
-fid ark search json            # pacts whose name holds "json"
-fid ark add textkit --version ^1.2
-fid ark install
+fid ark search json                  # pacts whose name holds "json"
+fid ark add textkit --version ^1.2   # writes textkit = "^1.2" in ark.toml
+fid ark install                      # installs it; ark.lock records the commit
 ```
 
-`fid ark add <name> --version <spec>` writes `name = "<spec>"` in ark.toml's
-`[dependencies]`; ark.lock records the commit installed. Version specs:
-`1.2.3`, `^1.2`, `~1.2.3`, `>=1.0, <2.0`, `1.x`, `*`
-(docs/reference/ark.md in the Fid repository).
+```fid
+// textkit is an example name
+use textkit;
 
-ark keeps a copy of the index in `<ARK_HOME or your home>/.ark/index` and
-pulls it before each lookup. Offline, the copy it has still answers.
+fn main() {
+    println(textkit_title("hello pacts"));
+}
+```
 
-## Publishing a pact
+Version specs are `1.2.3`, `^1.2`, `~1.2.3`, `>=1.0, <2.0`, `1.x` and `*`.
+ark keeps a copy of this index in `<ARK_HOME or your home>/.ark/index`,
+pulls it before each lookup, and still answers offline from the copy it
+has.
 
-1. Your pact is a git repository with an `ark.toml` at its top:
+## Publish a pact
 
-   ```toml
-   [package]
-   name = "textkit"
-   version = "1.2.0"
-   description = "Text utilities"
-   license = "MIT"
-   ```
+```bash
+git tag v1.2.0 && git push origin v1.2.0   # tag the version in your pact's repository
+fid ark publish                            # checks it, then adds its line to the index
+```
 
-   and its `.fd` sources. The repository must be public and reachable over
-   `https://`.
+ark refuses a version that is already published, and a minor or patch
+version that removes or changes the public API of the release before it.
+Without write access here, the commit waits in your copy of the index and
+you open a pull request with it. The **check** workflow verifies it and a
+maintainer merges it.
 
-2. Tag the version and push the tag:
+The whole guide, including writing the line by hand: **[CONTRIBUTING.md](CONTRIBUTING.md)**.
 
-   ```bash
-   git tag v1.2.0
-   git push origin v1.2.0
-   ```
+## How the index works
 
-3. Publish:
+One file per pact, at the top of the repository, named as the pact. One
+line per version:
 
-   ```bash
-   fid ark publish
-   ```
+```
+<version> <git-url> <tag> <commit> [yanked]
+```
 
-   ark checks the tag, refuses a version that is already published, and
-   refuses a minor or patch version that removes or changes the public API
-   of the release before it. It then adds the version's line to its copy of
-   the index and commits it.
+For example, a file `textkit` (the commits are illustrative):
 
-4. Open a pull request with that commit. Without write access to this
-   repository the push fails, and the commit waits in your copy of the
-   index (`~/.ark/index`):
+```
+1.0.0 https://github.com/you/textkit.git v1.0.0 4f1c2a9e0b7d3c5e8a6f1b2d4c7e9a0b3d5f7e1c
+1.2.0 https://github.com/you/textkit.git v1.2.0 9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b3a2f1e0d
+```
 
-   ```bash
-   cd ~/.ark/index
-   gh repo fork --remote --remote-name fork   # once
-   git push fork HEAD:publish-textkit-1.2.0
-   gh pr create --title "textkit 1.2.0" --body "" --head <you>:publish-textkit-1.2.0
-   ```
+| Path | What it is |
+|---|---|
+| `<pact>` (top level) | A pact's versions, one per line |
+| [`.github/owners`](owners) | Who may publish and yank each pact. Written by the **owners** workflow after a merge |
+| [`.github/reserved`](reserved) | Names no pact may take: the standard library's modules and the project's own names |
+| [`.github/scripts/check.py`](scripts/check.py) | The check every pull request must pass, run from `main`'s copy |
+| [`.github/workflows/`](workflows) | `check` (pull requests) and `owners` (after a merge) |
 
-   Then reset your copy to the index (`git reset --hard origin/main`, or
-   delete `~/.ark/index` and let ark clone it again).
-
-   Or write the line yourself: in your fork, append to the file named as
-   your pact (create it for a first version)
-
-   ```
-   1.2.0 https://github.com/you/textkit.git v1.2.0 <full 40-character commit of v1.2.0>
-   ```
-
-   (`git rev-parse v1.2.0^{commit}` prints the commit).
-
-The **check** workflow verifies every pull request; a maintainer merges it.
+Files and directories starting with `.` are not pacts, so everything else
+lives in `.github/`.
 
 ## The rules
 
-- **One file per pact**, at the top of this repository, named as the pact.
-  Names are a lowercase letter, then lowercase letters, digits and `_`, at
-  most 64 characters. Files and directories starting with `.` are not pacts.
-- **One line per version**: `<version> <git-url> <tag> <commit>`, single
-  spaces, LF line endings. The version is `major.minor.patch` with an
-  optional `-pre`; the tag is `v<version>`; the commit is the full hash the
-  tag points at; the URL is `https://` with no credentials.
-- **Versions never change.** A line, once merged, is never edited or
-  removed. To withdraw a version, yank it: `fid ark yank 1.2.0` adds
-  ` yanked` to the end of its line (`--undo` removes it). A yanked version
-  is never chosen for a new lock; projects whose ark.lock already has it
+- **Versions never change.** A merged line is never edited or removed. To
+  withdraw a version, yank it (`fid ark yank 1.2.0`). A yanked version is
+  never chosen for a new lock; projects whose `ark.lock` already has it
   keep it, with a warning.
-- **Owners.** Whoever publishes a pact's first version becomes its owner
-  (`.github/owners`, written after the merge). Only an owner may publish or
-  yank later versions. A maintainer adds or changes owners.
-- **Reserved names.** The standard library's modules (`json`, `http`, ...)
-  and the project's own names (`.github/reserved`) cannot be taken: `use
-  json` must not be ambiguous.
-- **Lookalike names.** A new name one edit away from an existing pact
-  (`jsno` next to `json`) needs a maintainer's approval.
+- **The tag is the version.** The tag is `v<version>`, and the commit is
+  the full 40-character hash it points at. The repository at that commit
+  has an `ark.toml` with this name and version.
+- **Owners publish.** Whoever publishes a pact's first version owns it.
+  Only an owner may publish or yank later versions.
+- **Names are protected.** Standard library module names are reserved, so
+  `use json` is never ambiguous. A name one edit away from an existing
+  pact (`jsno` next to `json`) needs a maintainer.
 - **One repository per pact.** Every version comes from the same
   repository; moving it needs a maintainer.
 
-## What the check verifies
+## Report a problem
 
-`.github/scripts/check.py`, run from the base branch on every pull request:
-
-- only pact files change (`.github/` is for maintainers);
-- the name is valid, not reserved, not a lookalike;
-- the author owns the pact (for a pact that already exists);
-- existing lines are unchanged except for ` yanked`;
-- each new line is well formed, its version new, its tag `v<version>`;
-- the tag exists in the repository and points at the commit;
-- the repository at that commit has an `ark.toml` naming this pact and this
-  version, and `.fd` sources.
-
-Run it yourself before opening a pull request:
-
-```bash
-python3 .github/scripts/check.py --base origin/main --head HEAD --author <you>
-```
+- A pact that is malicious, impersonates another project, or squats a
+  name: see [SECURITY.md](SECURITY.md) (malicious code is reported
+  privately).
+- A name, ownership or index question:
+  [open an issue](https://github.com/pledgeandgrow/pacts/issues/new/choose).
+- A bug in `fid ark` itself: the [Fid repository](https://github.com/pledgeandgrow/fid/issues).
 
 ## Another index
 
 `ARK_INDEX=<git url>` makes ark read another index, for a company's own
-pacts or a mirror. Any git host works; the layout is the one above.
+pacts or a mirror. Any git host works, with the same layout.
+
+<sub>The index lists pacts; it does not relicense them. Each pact has its
+own licence, named in its `ark.toml`.</sub>

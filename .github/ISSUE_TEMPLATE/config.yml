@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a malicious pact (private)
+    url: https://github.com/pledgeandgrow/pacts/security/advisories/new
+    about: Malicious code or impersonation. Reported privately, not in a public issue.
+  - name: A bug in fid ark
+    url: https://github.com/pledgeandgrow/fid/issues
+    about: ark's commands (search, add, install, publish, yank) live in the Fid repository.
+  - name: Questions and ideas
+    url: https://github.com/pledgeandgrow/fid/discussions
+    about: Ask in the Fid discussions.

@@ -1,0 +1,36 @@
+name: Ownership change
+description: Add an owner to a pact, remove one, or hand the pact over.
+title: "ownership: <pact>"
+labels: ["ownership"]
+body:
+  - type: markdown
+    attributes:
+      value: Open this from an account that already owns the pact (see `.github/owners`). A maintainer makes the change.
+  - type: input
+    id: pact
+    attributes:
+      label: Pact
+      placeholder: textkit
+    validations:
+      required: true
+  - type: dropdown
+    id: change
+    attributes:
+      label: Change
+      options:
+        - Add an owner
+        - Remove an owner
+        - Hand the pact over to another owner
+    validations:
+      required: true
+  - type: input
+    id: logins
+    attributes:
+      label: GitHub login(s)
+      placeholder: "@someone"
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Anything a maintainer should know

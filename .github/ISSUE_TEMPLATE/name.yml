@@ -1,0 +1,31 @@
+name: Name question
+description: A lookalike name to approve, a reserved name, a pact moving to a new repository, or a squatted name.
+title: "name: <pact>"
+labels: ["name"]
+body:
+  - type: input
+    id: pact
+    attributes:
+      label: Pact name
+      placeholder: textkit
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What is it about
+      options:
+        - Approve a name one edit away from an existing pact
+        - A reserved name
+        - Move the pact to another repository
+        - A name taken with no real pact behind it
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: The pull request, the repositories involved, and why.
+    validations:
+      required: true
