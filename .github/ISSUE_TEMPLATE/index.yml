@@ -1,0 +1,16 @@
+name: Index problem
+description: A wrong line, a check that fails when it should pass (or the other way), or a broken workflow.
+title: "index: "
+labels: ["index"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: The pact, the pull request or workflow run, and the output.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
