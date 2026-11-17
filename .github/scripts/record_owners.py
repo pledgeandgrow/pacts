@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
-"""Give each new pact an owner in .github/owners: the author of the pull
-request that added it (or, for a direct push, the person who pushed).
+"""Give each new pact an owner: the author of the pull request that added
+it (or, for a direct push, the person who pushed).
 
-Run on the main branch after a merge. Prints the pacts it recorded; the
-workflow commits the change. Needs `gh` (GH_TOKEN) to find the pull
-request of a commit; without it, the pusher (--pusher) is the owner.
+Run in a checkout of main after a merge. The owners file lives on the
+`owners` branch (main requires pull requests and the check, which the
+workflow's token cannot bypass); --owners is its path in a checkout of
+that branch. Prints the pacts it recorded; the workflow commits the change
+there. Needs `gh` (GH_TOKEN) to find the pull request of a commit;
+without it, the pusher (--pusher) is the owner.
 """
 
 import argparse
@@ -36,9 +39,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--repo", default=os.environ.get("GITHUB_REPOSITORY", ""))
     ap.add_argument("--pusher", required=True)
+    ap.add_argument("--owners", default=os.path.join(".github", "owners"),
+                    help="the owners file to read and extend")
     args = ap.parse_args()
 
-    path = os.path.join(".github", "owners")
+    path = args.owners
     with open(path, encoding="utf-8") as fh:
         text = fh.read()
     known = set()

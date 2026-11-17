@@ -92,6 +92,7 @@ The **check** workflow runs `main`'s copy of
 yourself first:
 
 ```bash
+git fetch origin owners    # the owners list, read as origin/owners
 python3 .github/scripts/check.py --base origin/main --head HEAD --author <your-github-login>
 ```
 
@@ -136,12 +137,15 @@ unsafe, and publish a fixed one.
 ## Ownership
 
 Whoever publishes a pact's first version becomes its owner. The **owners**
-workflow writes them to [`owners`](owners) after the merge. Only an owner may
+workflow writes them to [`.github/owners`](https://github.com/pledgeandgrow/pacts/blob/owners/.github/owners) on the `owners` branch
+after the merge. Only an owner may
 publish or yank later versions.
 
 To add an owner, or to hand a pact over, open an issue
 ([ownership form](https://github.com/pledgeandgrow/pacts/issues/new?template=ownership.yml))
-from an existing owner's account. A maintainer changes `owners`.
+from an existing owner's account. A maintainer edits `.github/owners` on
+the `owners` branch (a direct commit there; `main` takes pull requests
+only).
 
 ## For maintainers
 
@@ -152,7 +156,7 @@ from an existing owner's account. A maintainer changes `owners`.
   only after confirming with the owner.
 - For a malicious pact: yank every version (`fid ark yank`, with the
   `--package` option), record the decision in the issue, and remove the
-  owners entry. Lines stay in the index, so that `ark.lock` files can
+  owners entry (on the `owners` branch). Lines stay in the index, so that `ark.lock` files can
   still explain what they hold.
 - Keep [`reserved`](reserved) in step with the standard library: every new
   `stdlib/<name>.fd` in the Fid repository is a reserved name here.

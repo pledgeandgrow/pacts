@@ -15,6 +15,8 @@ Usage:
               an owner.
 --offline     skip the checks that reach the pact's repository.
 --allow-local accept git URLs that are local paths (tests only).
+--owners-ref  where .github/owners is read (default origin/owners, the
+              branch the owners workflow writes; else --base).
 
 Exit status 0 when every check passes; otherwise each problem is printed
 (as a GitHub annotation when run in Actions) and the status is 1.
@@ -82,6 +84,16 @@ def read_list(rev, path):
         if line and not line.startswith("#"):
             out.append(line)
     return out
+
+
+def owners_rev(owners_ref, base):
+    """Where the owners file is read: the `owners` branch (the owners
+    workflow writes it there, as main requires pull requests), else the
+    base revision (an index that keeps it on main)."""
+    if owners_ref and git("rev-parse", "--verify", "-q", owners_ref + "^{commit}",
+                          check=False).returncode == 0             and show(owners_ref, ".github/owners") is not None:
+        return owners_ref
+    return base
 
 
 def owners_at(rev):
@@ -284,10 +296,12 @@ def main():
     ap.add_argument("--maintainer", action="store_true")
     ap.add_argument("--offline", action="store_true")
     ap.add_argument("--allow-local", action="store_true")
+    ap.add_argument("--owners-ref", default="origin/owners",
+                    help="the revision whose .github/owners lists the owners")
     args = ap.parse_args()
     ALLOW_LOCAL = args.allow_local
 
-    owners = owners_at(args.base)
+    owners = owners_at(owners_rev(args.owners_ref, args.base))
     reserved = set(read_list(args.base, ".github/reserved"))
     existing = top_names(args.base)
     diff = git("diff", "--name-status", "--no-renames", args.base, args.head).stdout
