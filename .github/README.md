@@ -88,13 +88,15 @@ For example, a file `textkit` (the commits are illustrative):
 | Path | What it is |
 |---|---|
 | `<pact>` (top level) | A pact's versions, one per line |
-| [`.github/owners`](owners) | Who may publish and yank each pact. Written by the **owners** workflow after a merge |
+| [`.github/owners`](https://github.com/pledgeandgrow/pacts/blob/owners/.github/owners) on the `owners` branch | Who may publish and yank each pact. Written by the **owners** workflow after a merge |
 | [`.github/reserved`](reserved) | Names no pact may take: the standard library's modules and the project's own names |
 | [`.github/scripts/check.py`](scripts/check.py) | The check every pull request must pass, run from `main`'s copy |
 | [`.github/workflows/`](workflows) | `check` (pull requests) and `owners` (after a merge) |
 
 Files and directories starting with `.` are not pacts, so everything else
-lives in `.github/`.
+lives in `.github/`. `main` takes changes only through pull requests that
+pass the check. The owners list is kept on its own `owners` branch, so that
+the owners workflow can record new owners without a pull request.
 
 ## The rules
 

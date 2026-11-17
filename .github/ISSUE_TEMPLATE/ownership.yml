@@ -5,7 +5,7 @@ labels: ["ownership"]
 body:
   - type: markdown
     attributes:
-      value: Open this from an account that already owns the pact (see `.github/owners`). A maintainer makes the change.
+      value: Open this from an account that already owns the pact (see `.github/owners` on the `owners` branch). A maintainer makes the change.
   - type: input
     id: pact
     attributes:

@@ -1,6 +1,8 @@
 name: owners
 
-# After a merge, each new pact gets its publisher as owner in .github/owners.
+# After a merge, each new pact gets its publisher as owner. The owners file
+# is .github/owners on the `owners` branch: main requires pull requests and
+# the check, and this workflow's token cannot bypass that.
 on:
   push:
     branches: [main]
@@ -20,15 +22,21 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: check out the owners branch
+        run: |
+          git fetch -q origin owners
+          git worktree add -q --detach "$RUNNER_TEMP/owners" FETCH_HEAD
       - name: record owners of new pacts
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          python3 .github/scripts/record_owners.py --pusher "${{ github.actor }}"
+          python3 .github/scripts/record_owners.py --pusher "${{ github.actor }}" \
+            --owners "$RUNNER_TEMP/owners/.github/owners"
+          cd "$RUNNER_TEMP/owners"
           if ! git diff --quiet -- .github/owners; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add .github/owners
             git commit -q -m "owners: record the owners of new pacts"
-            git push -q
+            git push -q origin HEAD:owners
           fi

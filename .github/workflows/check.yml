@@ -25,6 +25,9 @@ jobs:
           GIT_ALLOW_PROTOCOL: https
         run: |
           git show "$BASE:.github/scripts/check.py" > "$RUNNER_TEMP/check.py"
+          # the owners are on the owners branch of this repository (never the
+          # pull request's), read by check.py as origin/owners
+          git fetch -q origin "+refs/heads/owners:refs/remotes/origin/owners" || true
           extra=""
           case "$ASSOCIATION" in
             OWNER|MEMBER|COLLABORATOR) extra="--maintainer" ;;
